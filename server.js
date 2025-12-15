@@ -4,6 +4,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const clasificacionRoutes = require("./routes/clasificacion");
+const partidosRoutes = require("./routes/partidos");
 
 // Cargar variables de entorno
 dotenv.config();
@@ -29,6 +30,9 @@ app.use("/api/users", userRoutes);
 
 // Definir la ruta de Clasificación
 app.use("/api/clasificacion", clasificacionRoutes);
+
+// Definir la ruta de Partidos
+app.use("/api/partidos", partidosRoutes);
 
 const PORT = process.env.PORT || 5000;
 
