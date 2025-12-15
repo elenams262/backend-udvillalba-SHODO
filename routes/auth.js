@@ -5,32 +5,33 @@ const jwt = require("jsonwebtoken");
 
 // Función auxiliar para generar el token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d", // El token expira en 30 días
-  });
+  return jwt.sign({ id }, process.env.JWT_SECRET);
 };
 
-// ----------------------------------------------------
-// @route   POST /api/auth/register
-// @desc    Registrar un nuevo usuario
-// @access  Public
-// ----------------------------------------------------
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { nombre, apellidos, correo, telefono, fechanacimiento, contraseña } =
+    req.body;
 
   try {
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ correo });
 
     if (user) {
-      return res.status(400).json({ msg: "El usuario ya existe" });
+      return res.status(400).json({ mensaje: "El usuario ya existe" });
     }
 
-    user = new User({ name, email, password });
+    user = new User({
+      nombre,
+      apellidos,
+      correo,
+      telefono,
+      fechanacimiento,
+      contraseña,
+    });
     await user.save();
 
     res.status(201).json({
       _id: user._id,
-      name: user.name,
+      nombre: user.nombre,
       email: user.email,
       token: generateToken(user._id),
     });
@@ -40,22 +41,17 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// ----------------------------------------------------
-// @route   POST /api/auth/login
-// @desc    Autenticar usuario y obtener token
-// @access  Public
-// ----------------------------------------------------
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { correo, contraseña } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ correo });
 
-    if (user && (await user.matchPassword(password))) {
+    if (user && (await user.matchPassword(contraseña))) {
       res.json({
         _id: user._id,
-        name: user.name,
-        email: user.email,
+        nombre: user.nombre,
+        correo: user.correo,
         token: generateToken(user._id),
       });
     } else {
