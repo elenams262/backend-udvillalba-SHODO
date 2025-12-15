@@ -32,7 +32,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/clasificacion", clasificacionRoutes);
 
 // Definir la ruta de Partidos
-app.use("/api/partidos", partidosRoutes);
+app.use("/api/jornada", partidosRoutes);
 
 const PORT = process.env.PORT || 5000;
 

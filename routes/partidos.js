@@ -2,7 +2,7 @@
 
 const express = require("express");
 const router = express.Router();
-const Match = require("../models/Match");
+const Match = require("../models/Partidos");
 const { protect } = require("../middleware/authmiddleware");
 
 // Obtenemos el nombre del equipo desde las variables de entorno

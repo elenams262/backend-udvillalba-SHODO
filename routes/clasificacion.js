@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Team = require("../models/Team");
+const equipos = require("../models/Equipos");
 const { protect } = require("../middleware/authmiddleware");
 
 router.get("/", async (req, res) => {

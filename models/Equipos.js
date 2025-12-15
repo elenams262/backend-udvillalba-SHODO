@@ -1,5 +1,3 @@
-// models/Team.js
-
 const mongoose = require("mongoose");
 
 const TeamSchema = new mongoose.Schema(
