@@ -67,9 +67,6 @@ const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Autenticar usuario y obtener token
-// @route   POST /api/auth/login
-// @access  Public
 const loginUser = async (req, res) => {
   const { correo, contraseña } = req.body;
 

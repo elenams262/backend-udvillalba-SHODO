@@ -13,15 +13,9 @@ dotenv.config();
 connectDB();
 const app = express();
 
+// Configuración de CORS (Para que el Frontend pueda hablar con el Backend)
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Si el origen está en nuestra lista de permitidos O si la petición no tiene origen (ej: Postman)
-    if (allowedOrigins.includes(origin) || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error("No permitido por CORS"), false);
-    }
-  },
+  origin: "*", // ' * ' permite que cualquiera se conecte (ideal para desarrollo/estudiantes)
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
 };

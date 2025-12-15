@@ -1,6 +1,3 @@
-// @desc    Obtener perfil de usuario
-// @route   GET /api/users/profile
-// @access  Private
 const getUserProfile = (req, res) => {
   // req.user viene del middleware "protect"
   res.json({
