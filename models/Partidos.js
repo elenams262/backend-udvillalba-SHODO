@@ -14,7 +14,6 @@ const MatchSchema = new mongoose.Schema(
     },
     escudoLocal: {
       type: String,
-      required: true,
     },
     // Nombre del Equipo Visitante
     equipoVisitante: {
@@ -23,7 +22,6 @@ const MatchSchema = new mongoose.Schema(
     },
     escudoVisitante: {
       type: String,
-      required: true,
     },
     // Lugar donde se jugará el partido (Ej: "Estadio Santiago Bernabéu")
     ubicacion: {

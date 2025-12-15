@@ -1,14 +1,11 @@
-const express = require("express");
-const router = express.Router();
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 
-// Función auxiliar para generar el token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET);
 };
 
-router.post("/register", async (req, res) => {
+const registerUser = async (req, res) => {
   const { nombre, apellidos, correo, telefono, fechanacimiento, contraseña } =
     req.body;
 
@@ -18,6 +15,7 @@ router.post("/register", async (req, res) => {
     if (user) {
       return res.status(400).json({ mensaje: "El usuario ya existe" });
     }
+
     if (!fechanacimiento) {
       return res
         .status(400)
@@ -67,9 +65,12 @@ router.post("/register", async (req, res) => {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
   }
-});
+};
 
-router.post("/login", async (req, res) => {
+// @desc    Autenticar usuario y obtener token
+// @route   POST /api/auth/login
+// @access  Public
+const loginUser = async (req, res) => {
   const { correo, contraseña } = req.body;
 
   try {
@@ -89,6 +90,9 @@ router.post("/login", async (req, res) => {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  registerUser,
+  loginUser,
+};
