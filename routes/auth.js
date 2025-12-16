@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-// Importamos las funciones desde el controlador
-// (Aquí es donde está la lógica corregida que incluye el 'rol')
+// IMPORTANTE: Importamos las funciones del controlador que YA TIENEN la lógica del rol
 const { registerUser, loginUser } = require("../controllers/authController");
 
-// Definimos las rutas apuntando al controlador
+// Definimos las rutas usando esas funciones
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 
