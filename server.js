@@ -23,9 +23,13 @@ app.post("/images/single", upload.single("imagenPerfil"), (req, res) => {
   res.send("Termina");
 });
 
-app.post("/images/multi", upload.array("photos", 10), (req, res) => {
+app.post("/jugadoras/multi", upload.array("jugadoras", 20), (req, res) => {
   req.files.map(saveImage);
-  res.send("Termina Multi");
+  res.send("Se han subido archivos de jugadoras");
+});
+app.post("/escudos/multi", upload.array("escudos", 20), (req, res) => {
+  req.files.map(saveImage);
+  res.send("Se han subido archivos de escudos");
 });
 
 function saveImage(file) {
