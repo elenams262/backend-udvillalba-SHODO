@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
+const fs = require("node:fs");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
@@ -9,9 +11,28 @@ const partidosRoutes = require("./routes/partidos");
 
 dotenv.config();
 
+const upload = multer({ dest: "uploads/" });
+
 // Conectar a la base de datos
 connectDB();
 const app = express();
+
+app.post("/images/single", upload.single("imagenPerfil"), (req, res) => {
+  console.log(req.file);
+  saveImage(req.file);
+  res.send("Termina");
+});
+
+app.post("/images/multi", upload.array("photos", 10), (req, res) => {
+  req.files.map(saveImage);
+  res.send("Termina Multi");
+});
+
+function saveImage(file) {
+  const newPatch = `./uploads/${file.originalname}`;
+  fs.renameSync(file.path, newPatch);
+  return newPatch;
+}
 
 // Configuración de CORS (Para que el Frontend pueda hablar con el Backend)
 const corsOptions = {
