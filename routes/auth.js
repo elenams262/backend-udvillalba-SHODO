@@ -1,94 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
 
-// Función auxiliar para generar el token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET);
-};
+// Importamos las funciones desde el controlador
+// (Aquí es donde está la lógica corregida que incluye el 'rol')
+const { registerUser, loginUser } = require("../controllers/authController");
 
-router.post("/register", async (req, res) => {
-  const { nombre, apellidos, correo, telefono, fechanacimiento, contraseña } =
-    req.body;
-
-  try {
-    let user = await User.findOne({ correo });
-
-    if (user) {
-      return res.status(400).json({ mensaje: "El usuario ya existe" });
-    }
-    if (!fechanacimiento) {
-      return res
-        .status(400)
-        .json({ mensaje: "La fecha de nacimiento es obligatoria" });
-    }
-
-    let birthDateISO;
-    console.log("Fecha recibida:", fechanacimiento);
-
-    if (fechanacimiento && fechanacimiento.includes("/")) {
-      const parts = fechanacimiento.split("/");
-      if (parts.length === 3) {
-        const [day, month, year] = parts;
-        birthDateISO = `${year}-${month}-${day}`;
-      } else {
-        birthDateISO = fechanacimiento;
-      }
-    } else {
-      birthDateISO = fechanacimiento;
-    }
-
-    console.log("Fecha ISO:", birthDateISO);
-    const dateObject = new Date(birthDateISO);
-    console.log("Objeto Date:", dateObject);
-
-    if (isNaN(dateObject.getTime())) {
-      return res.status(400).json({ mensaje: "Fecha de nacimiento inválida" });
-    }
-
-    user = new User({
-      nombre,
-      apellidos,
-      correo,
-      telefono,
-      fechanacimiento: dateObject,
-      contraseña,
-    });
-    await user.save();
-
-    res.status(201).json({
-      _id: user._id,
-      nombre: user.nombre,
-      correo: user.correo,
-      token: generateToken(user._id),
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Error en el servidor");
-  }
-});
-
-router.post("/login", async (req, res) => {
-  const { correo, contraseña } = req.body;
-
-  try {
-    const user = await User.findOne({ correo });
-
-    if (user && (await user.matchPassword(contraseña))) {
-      res.json({
-        _id: user._id,
-        nombre: user.nombre,
-        correo: user.correo,
-        token: generateToken(user._id),
-      });
-    } else {
-      res.status(401).json({ msg: "Credenciales inválidas" });
-    }
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Error en el servidor");
-  }
-});
+// Definimos las rutas apuntando al controlador
+router.post("/register", registerUser);
+router.post("/login", loginUser);
 
 module.exports = router;

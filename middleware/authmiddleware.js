@@ -31,4 +31,14 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+const admin = (req, res, next) => {
+  // Verificamos si existe el usuario y si su campo 'rol' es 'admin'
+  if (req.user && req.user.rol === "admin") {
+    next(); // Es admin, dejamos pasar
+  } else {
+    res.status(401).json({ msg: "No autorizado como administrador" });
+  }
+};
+
+// Exportamos ambas funciones
+module.exports = { protect, admin };

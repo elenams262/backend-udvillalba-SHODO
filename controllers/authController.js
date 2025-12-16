@@ -23,7 +23,7 @@ const registerUser = async (req, res) => {
     }
 
     let birthDateISO;
-    console.log("Fecha recibida:", fechanacimiento);
+    // console.log("Fecha recibida:", fechanacimiento);
 
     if (fechanacimiento && fechanacimiento.includes("/")) {
       const parts = fechanacimiento.split("/");
@@ -37,9 +37,7 @@ const registerUser = async (req, res) => {
       birthDateISO = fechanacimiento;
     }
 
-    console.log("Fecha ISO:", birthDateISO);
     const dateObject = new Date(birthDateISO);
-    console.log("Objeto Date:", dateObject);
 
     if (isNaN(dateObject.getTime())) {
       return res.status(400).json({ mensaje: "Fecha de nacimiento inválida" });
@@ -52,6 +50,7 @@ const registerUser = async (req, res) => {
       telefono,
       fechanacimiento: dateObject,
       contraseña,
+      // El rol por defecto se pone en el modelo (default: 'usuario'), no hace falta aquí
     });
     await user.save();
 
@@ -59,6 +58,7 @@ const registerUser = async (req, res) => {
       _id: user._id,
       nombre: user.nombre,
       correo: user.correo,
+      rol: user.rol, // <--- AÑADIDO: Para que el front sepa qué rol tiene el nuevo usuario
       token: generateToken(user._id),
     });
   } catch (err) {
@@ -74,10 +74,12 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ correo });
 
     if (user && (await user.matchPassword(contraseña))) {
+      // AQUÍ ESTABA EL ERROR: Faltaba enviar el rol
       res.json({
         _id: user._id,
         nombre: user.nombre,
         correo: user.correo,
+        rol: user.rol, // <--- ¡ESTA ES LA LÍNEA CLAVE!
         token: generateToken(user._id),
       });
     } else {

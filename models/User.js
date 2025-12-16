@@ -27,6 +27,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  rol: {
+    type: String,
+    default: "usuario", // Por defecto todos son usuarios normales
+    required: true,
+  },
 });
 
 // 1. Encriptar la contraseña antes de guardar (Middleware)
