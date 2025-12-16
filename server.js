@@ -32,6 +32,11 @@ app.post("/escudos/multi", upload.array("escudos", 20), (req, res) => {
   res.send("Se han subido archivos de escudos");
 });
 
+app.post("/otros/multi", upload.array("otros", 20), (req, res) => {
+  req.files.map(saveImage);
+  res.send("Se han subido archivos otros");
+});
+
 function saveImage(file) {
   const newPatch = `./uploads/${file.originalname}`;
   fs.renameSync(file.path, newPatch);
