@@ -3,6 +3,7 @@ const cors = require("cors");
 const multer = require("multer");
 const fs = require("node:fs");
 const dotenv = require("dotenv");
+const path = require("path"); // <--- ESTA ES LA LÍNEA QUE TE FALTABA
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
@@ -17,6 +18,22 @@ const upload = multer({ dest: "uploads/" });
 connectDB();
 const app = express();
 
+// Configuración de CORS
+const corsOptions = {
+  origin: "*",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+};
+app.use(cors(corsOptions));
+
+// Middleware para JSON
+app.use(express.json());
+
+// --- AQUÍ ESTÁ LA LÍNEA MÁGICA PARA LAS FOTOS ---
+// Ahora funcionará porque hemos importado 'path' arriba
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// --- RUTAS DE SUBIDA DE ARCHIVOS ---
 app.post("/images/single", upload.single("imagenPerfil"), (req, res) => {
   console.log(req.file);
   saveImage(req.file);
@@ -38,40 +55,21 @@ app.post("/otros/multi", upload.array("otros", 20), (req, res) => {
 });
 
 function saveImage(file) {
+  // Aseguramos que se guarde en la carpeta uploads
   const newPatch = `./uploads/${file.originalname}`;
   fs.renameSync(file.path, newPatch);
   return newPatch;
 }
 
-// Configuración de CORS (Para que el Frontend pueda hablar con el Backend)
-const corsOptions = {
-  origin: "*", // ' * ' permite que cualquiera se conecte (ideal para desarrollo/estudiantes)
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-};
-app.use(cors(corsOptions));
-
-// Cargar variables de entorno
-
-// Middleware para poder leer JSON en el body de las peticiones
-app.use(express.json());
-
-// Definir la ruta de Autenticación
+// --- RESTO DE RUTAS DE LA API ---
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/clasificacion", clasificacionRoutes);
+app.use("/api/jornada", partidosRoutes);
 
-// Ruta de prueba
 app.get("/", (req, res) => {
   res.send("API funcionando...");
 });
-
-// Definir la ruta de Usuarios
-app.use("/api/users", userRoutes);
-
-// Definir la ruta de Clasificación
-app.use("/api/clasificacion", clasificacionRoutes);
-
-// Definir la ruta de Partidos
-app.use("/api/jornada", partidosRoutes);
 
 const PORT = process.env.PORT || 5000;
 
