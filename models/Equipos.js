@@ -7,6 +7,10 @@ const TeamSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    escudo: {
+      type: String,
+      required: true,
+    },
     // Partidos Jugados (PJ)
     partidosJugados: {
       type: Number,
