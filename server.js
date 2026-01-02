@@ -20,7 +20,7 @@ const app = express();
 
 // Configuración de CORS
 const corsOptions = {
-  origin: "*",
+  origin: "front-udvillalba-shodo.vercel.app",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
 };
