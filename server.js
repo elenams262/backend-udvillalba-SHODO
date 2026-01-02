@@ -19,8 +19,10 @@ connectDB();
 const app = express();
 
 // Configuración de CORS
+// Configuración de CORS
 const corsOptions = {
-  origin: "front-udvillalba-shodo.vercel.app",
+  // Es vital poner el https:// al principio
+  origin: "https://front-udvillalba-shodo.vercel.app",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
 };
