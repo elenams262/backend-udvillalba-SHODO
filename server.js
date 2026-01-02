@@ -18,23 +18,25 @@ const app = express();
 
 // --- CONFIGURACIÓN DE CORS ---
 // Se ha añadido explícitamente tu URL de Vercel
+
+// server.js (en Render)
 const allowedOrigins = [
-  "https://infantil-femenino-udvillalba.vercel.app",
+  "https://infantil-femenino-udvillalba.vercel.app", // Tu URL real
   "http://localhost:4200",
-  "http://localhost:5000",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Permitir si no hay origen (como apps móviles) o si está en la lista o si es de vercel
       if (
         !origin ||
         allowedOrigins.includes(origin) ||
-        origin.includes("vercel.app")
+        origin.endsWith(".vercel.app")
       ) {
         callback(null, true);
       } else {
-        callback(new Error("No permitido por CORS"));
+        callback(new Error("Bloqueado por CORS"));
       }
     },
     credentials: true,
