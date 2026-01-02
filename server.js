@@ -21,29 +21,16 @@ const app = express();
 // Configuración de CORS corregida
 // Configuración dinámica de CORS
 // En tu server.js
+// Opción más compatible para producción
 app.use(
   cors({
-    origin: function (origin, callback) {
-      const allowedOrigins = [
-        "https://infantil-femenino-udvillalba.vercel.app", // <--- AÑADE ESTA EXACTAMENTE
-        "https://front-udvillalba-shodo.vercel.app",
-        "https://frontend-udvillalba-bueno.vercel.app",
-        "http://localhost:4200",
-      ];
-
-      // La lógica para permitir la petición
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("Origen no permitido por CORS:", origin); // Esto te ayudará a ver el error en los logs de Render
-        callback(new Error("No permitido por CORS"));
-      }
-    },
+    origin: "https://infantil-femenino-udvillalba.vercel.app", // Sin barra al final
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 // Manejo explícito de la petición OPTIONS (Preflight)
 // app.options("*", cors());
 
