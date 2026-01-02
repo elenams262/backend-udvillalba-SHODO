@@ -39,8 +39,7 @@ app.use(
 
 app.use(express.json());
 
-// --- CONFIGURACIÓN AVANZADA DE MULTER ---
-// Usamos diskStorage para controlar el nombre y la extensión del archivo
+// --- CONFIGURACIÓN MEJORADA DE MULTER ---
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = "uploads/";
@@ -53,41 +52,103 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     // Generamos un nombre único: timestamp + número aleatorio + extensión original
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    // ✅ MEJORA: Sanitizamos la extensión
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, uniqueSuffix + ext);
   },
 });
 
-const upload = multer({ storage: storage });
+// ✅ AÑADIDO: Filtro de archivos para seguridad
+const fileFilter = (req, file, cb) => {
+  // Tipos MIME permitidos
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ];
+
+  // Extensiones permitidas
+  const allowedExtensions = /\.(jpg|jpeg|png|gif|webp)$/i;
+
+  const mimeTypeValid = allowedMimeTypes.includes(file.mimetype);
+  const extValid = allowedExtensions.test(file.originalname);
+
+  if (mimeTypeValid && extValid) {
+    cb(null, true); // ✅ Archivo válido
+  } else {
+    cb(
+      new Error(
+        "Tipo de archivo no permitido. Solo se aceptan imágenes (JPG, PNG, GIF, WEBP)"
+      ),
+      false
+    );
+  }
+};
+
+// ✅ CONFIGURACIÓN COMPLETA DE MULTER
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // ✅ Límite de 5MB por archivo
+  },
+  fileFilter: fileFilter, // ✅ Validación de tipo de archivo
+});
 
 // --- SERVIR IMÁGENES ESTÁTICAS ---
-// Permite ver las imágenes en http://localhost:PORT/uploads/nombre-archivo.png
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// --- NUEVO ENDPOINT PARA TU FRONTEND (Clasificación, etc.) ---
+// --- ENDPOINT PARA SUBIR IMÁGENES (Clasificación, etc.) ---
 app.post("/api/upload", upload.single("imagen"), (req, res) => {
   if (!req.file) {
-    return res.status(400).send("No se ha subido ningún archivo.");
+    return res.status(400).json({ error: "No se ha subido ningún archivo." });
   }
   // Devolvemos el nombre generado para que el frontend lo guarde en la BBDD
   res.json({ filename: req.file.filename });
 });
 
-// --- RUTA LEGACY (Mantenida por compatibilidad, pero mejorada) ---
+// --- RUTA LEGACY (Perfil de usuario) ---
 app.post("/images/single", upload.single("imagenPerfil"), (req, res) => {
-  // Con la nueva configuración, el archivo ya tiene el nombre correcto y extensión.
+  if (!req.file) {
+    return res.status(400).json({ error: "No se ha subido ningún archivo." });
+  }
   console.log("Archivo subido:", req.file);
-  res.send("Imagen subida correctamente");
+  res.json({
+    message: "Imagen subida correctamente",
+    filename: req.file.filename,
+  });
 });
 
 // --- RUTAS MÚLTIPLES ---
 app.post("/jugadoras/multi", upload.array("jugadoras", 20), (req, res) => {
-  res.send("Se han subido archivos de jugadoras");
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: "No se han subido archivos." });
+  }
+  res.json({
+    message: "Se han subido archivos de jugadoras",
+    files: req.files.map((f) => f.filename),
+  });
 });
+
 app.post("/escudos/multi", upload.array("escudos", 20), (req, res) => {
-  res.send("Se han subido archivos de escudos");
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: "No se han subido archivos." });
+  }
+  res.json({
+    message: "Se han subido archivos de escudos",
+    files: req.files.map((f) => f.filename),
+  });
 });
+
 app.post("/otros/multi", upload.array("otros", 20), (req, res) => {
-  res.send("Se han subido archivos otros");
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: "No se han subido archivos." });
+  }
+  res.json({
+    message: "Se han subido archivos otros",
+    files: req.files.map((f) => f.filename),
+  });
 });
 
 // --- RESTO DE RUTAS DE LA API ---
@@ -100,7 +161,26 @@ app.get("/", (req, res) => {
   res.send("API funcionando...");
 });
 
+// ✅ AÑADIDO: Middleware de manejo de errores global
+app.use((err, req, res, next) => {
+  // Errores de Multer
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        error: "El archivo es demasiado grande. Tamaño máximo: 5MB",
+      });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+
+  // Otros errores
+  if (err) {
+    return res.status(500).json({ error: err.message });
+  }
+
+  next();
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
-// --- FIN DE LA CONFIGURACIÓN ---

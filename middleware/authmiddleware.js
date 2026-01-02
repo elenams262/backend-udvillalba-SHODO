@@ -17,17 +17,19 @@ const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // 3. Obtener el usuario del token y adjuntarlo al objeto request
-      req.user = await User.findById(decoded.id).select("-password");
+      // ✅ CORREGIDO: Usamos "-contraseña" en lugar de "-password"
+      req.user = await User.findById(decoded.id).select("-contraseña");
 
       next(); // Continuar a la siguiente función (la ruta protegida)
     } catch (error) {
       console.error(error);
-      res.status(401).json({ msg: "No autorizado, token fallido" });
+      return res.status(401).json({ msg: "No autorizado, token fallido" }); // ✅ AÑADIDO: return
     }
   }
 
+  // ✅ CORREGIDO: Añadido 'return' para evitar que se ejecute código después
   if (!token) {
-    res.status(401).json({ msg: "No autorizado, no hay token" });
+    return res.status(401).json({ msg: "No autorizado, no hay token" });
   }
 };
 
@@ -36,7 +38,8 @@ const admin = (req, res, next) => {
   if (req.user && req.user.rol === "admin") {
     next(); // Es admin, dejamos pasar
   } else {
-    res.status(401).json({ msg: "No autorizado como administrador" });
+    // ✅ CORREGIDO: Cambiado código de error de 401 a 403 (más apropiado)
+    return res.status(403).json({ msg: "No autorizado como administrador" });
   }
 };
 

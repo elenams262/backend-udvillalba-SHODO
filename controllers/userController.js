@@ -7,7 +7,8 @@ const getUserProfile = (req, res) => {
     correo: req.user.correo,
     telefono: req.user.telefono,
     fechanacimiento: req.user.fechanacimiento,
-    contraseña: req.user.contraseña,
+    rol: req.user.rol, // ✅ AÑADIDO: Ahora el frontend sabe si es admin
+    // ❌ ELIMINADO: contraseña (NUNCA se debe enviar al frontend)
   });
 };
 
