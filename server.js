@@ -47,7 +47,7 @@ app.use(
 );
 
 // Manejo explícito de la petición OPTIONS (Preflight)
-app.options("*", cors());
+// app.options("*", cors());
 
 // Middleware para JSON
 app.use(express.json());
