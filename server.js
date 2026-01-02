@@ -22,9 +22,21 @@ const app = express();
 // Configuración dinámica de CORS
 // En tu server.js
 // Opción más compatible para producción
+// Configuración de CORS ultra-flexible para Vercel
 app.use(
   cors({
-    origin: "https://infantil-femenino-udvillalba.vercel.app", // Sin barra al final
+    origin: function (origin, callback) {
+      // Si no hay origen (peticiones locales) o el origen incluye "vercel.app" o es tu dominio local
+      if (
+        !origin ||
+        origin.includes("vercel.app") ||
+        origin.includes("localhost")
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("No permitido por CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
