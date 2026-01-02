@@ -19,16 +19,35 @@ connectDB();
 const app = express();
 
 // Configuración de CORS corregida
-const corsOptions = {
-  origin: [
-    "https://front-udvillalba-shodo.vercel.app",
-    "http://localhost:4200",
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-app.use(cors(corsOptions));
+// Configuración dinámica de CORS
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Permite peticiones sin origen (como herramientas de prueba) o que coincidan con tus dominios
+      const allowedOrigins = [
+        "https://front-udvillalba-shodo.vercel.app",
+        "https://frontend-udvillalba-bueno.vercel.app",
+        "http://localhost:4200",
+      ];
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("No permitido por CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
+  })
+);
+
+// Manejo explícito de la petición OPTIONS (Preflight)
+app.options("*", cors());
 
 // Middleware para JSON
 app.use(express.json());
