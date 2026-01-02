@@ -18,13 +18,15 @@ const upload = multer({ dest: "uploads/" });
 connectDB();
 const app = express();
 
-// Configuración de CORS
-// Configuración de CORS
+// Configuración de CORS corregida
 const corsOptions = {
-  // Es vital poner el https:// al principio
-  origin: "https://front-udvillalba-shodo.vercel.app",
+  origin: [
+    "https://front-udvillalba-shodo.vercel.app",
+    "http://localhost:4200",
+  ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 app.use(cors(corsOptions));
 
