@@ -3,7 +3,7 @@ const cors = require("cors");
 const multer = require("multer");
 const fs = require("node:fs");
 const dotenv = require("dotenv");
-const path = require("path"); // <--- ESTA ES LA LÍNEA QUE TE FALTABA
+const path = require("path");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
@@ -12,25 +12,19 @@ const partidosRoutes = require("./routes/partidos");
 
 dotenv.config();
 
-const upload = multer({ dest: "uploads/" });
-
 // Conectar a la base de datos
 connectDB();
 const app = express();
 
-// Configuración de CORS corregida
-// Configuración dinámica de CORS
-// En tu server.js
-// Opción más compatible para producción
-// Configuración de CORS ultra-flexible para Vercel
+// --- CONFIGURACIÓN DE CORS ---
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Si no hay origen (peticiones locales) o el origen incluye "vercel.app" o es tu dominio local
       if (
         !origin ||
         origin.includes("vercel.app") ||
-        origin.includes("localhost")
+        origin.includes("localhost") ||
+        origin.includes("onrender.com")
       ) {
         callback(null, true);
       } else {
@@ -43,50 +37,64 @@ app.use(
   })
 );
 
-// Manejo explícito de la petición OPTIONS (Preflight)
-// app.options("*", cors());
-
-// Middleware para JSON
 app.use(express.json());
 
-// --- AQUÍ ESTÁ LA LÍNEA MÁGICA PARA LAS FOTOS ---
-// Ahora funcionará porque hemos importado 'path' arriba
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// --- RUTAS DE SUBIDA DE ARCHIVOS ---
-app.post("/images/single", upload.single("imagenPerfil"), (req, res) => {
-  console.log(req.file);
-  saveImage(req.file);
-  res.send("Termina");
+// --- CONFIGURACIÓN AVANZADA DE MULTER ---
+// Usamos diskStorage para controlar el nombre y la extensión del archivo
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = "uploads/";
+    // Crear carpeta uploads si no existe
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generamos un nombre único: timestamp + número aleatorio + extensión original
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
 });
 
+const upload = multer({ storage: storage });
+
+// --- SERVIR IMÁGENES ESTÁTICAS ---
+// Permite ver las imágenes en http://localhost:PORT/uploads/nombre-archivo.png
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// --- NUEVO ENDPOINT PARA TU FRONTEND (Clasificación, etc.) ---
+app.post("/api/upload", upload.single("imagen"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send("No se ha subido ningún archivo.");
+  }
+  // Devolvemos el nombre generado para que el frontend lo guarde en la BBDD
+  res.json({ filename: req.file.filename });
+});
+
+// --- RUTA LEGACY (Mantenida por compatibilidad, pero mejorada) ---
+app.post("/images/single", upload.single("imagenPerfil"), (req, res) => {
+  // Con la nueva configuración, el archivo ya tiene el nombre correcto y extensión.
+  console.log("Archivo subido:", req.file);
+  res.send("Imagen subida correctamente");
+});
+
+// --- RUTAS MÚLTIPLES ---
 app.post("/jugadoras/multi", upload.array("jugadoras", 20), (req, res) => {
-  req.files.map(saveImage);
   res.send("Se han subido archivos de jugadoras");
 });
 app.post("/escudos/multi", upload.array("escudos", 20), (req, res) => {
-  req.files.map(saveImage);
   res.send("Se han subido archivos de escudos");
 });
-
 app.post("/otros/multi", upload.array("otros", 20), (req, res) => {
-  req.files.map(saveImage);
   res.send("Se han subido archivos otros");
 });
-
-function saveImage(file) {
-  // Aseguramos que se guarde en la carpeta uploads
-  const newPatch = `./uploads/${file.originalname}`;
-  fs.renameSync(file.path, newPatch);
-  return newPatch;
-}
 
 // --- RESTO DE RUTAS DE LA API ---
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/clasificacion", clasificacionRoutes);
 app.use("/api/jornada", partidosRoutes);
-app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
   res.send("API funcionando...");
