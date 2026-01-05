@@ -90,7 +90,7 @@ const registerUser = async (req, res) => {
       _id: user._id,
       username: user.username,
       nombre: user.nombre,
-      rol: user.rol,
+      rol: user.role,
       token: generateToken(user._id),
     });
   } catch (err) {
@@ -110,7 +110,7 @@ const loginUser = async (req, res) => {
         _id: user._id,
         username: user.username,
         nombre: user.nombre,
-        rol: user.rol,
+        rol: user.role,
         token: generateToken(user._id),
       });
     } else {

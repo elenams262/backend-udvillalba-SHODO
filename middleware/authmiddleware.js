@@ -51,7 +51,7 @@ const protect = async (req, res, next) => {
  */
 const admin = (req, res, next) => {
   // Verificamos si existe el usuario (cargado por 'protect') y si su campo 'rol' es 'admin'
-  if (req.user && req.user.rol === "admin") {
+  if (req.user && req.user.role === "admin") {
     return next(); // Es admin, dejamos pasar
   } else {
     // 403 Forbidden es el error correcto cuando el usuario está autenticado pero no tiene permisos
