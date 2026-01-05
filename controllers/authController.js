@@ -67,7 +67,8 @@ const registerUser = async (req, res) => {
     res.status(201).json({
       _id: user._id,
       username: user.username,
-      rol: user.role,
+      nombre: user.nombre,
+      rol: user.role, // Enviamos el campo 'role' de la DB como 'rol' para Angular
       token: generateToken(user._id),
     });
   } catch (err) {
