@@ -121,8 +121,35 @@ const loginUser = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+// Generar un nuevo código aleatorio (Solo Admin)
+const generateInviteCode = async (req, res) => {
+  try {
+    // Genera un código de 6 caracteres aleatorios (letras y números)
+    const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
+    const invite = new InviteCode({ code: newCode });
+    await invite.save();
+
+    res.status(201).json(invite);
+  } catch (err) {
+    res.status(500).json({ mensaje: "Error al generar el código" });
+  }
+};
+
+// Listar todos los códigos para que el admin los vea
+const getInviteCodes = async (req, res) => {
+  try {
+    const codes = await InviteCode.find().sort({ createdAt: -1 });
+    res.json(codes);
+  } catch (err) {
+    res.status(500).json({ mensaje: "Error al obtener los códigos" });
+  }
+};
+
+// No olvides añadirlos al module.exports
 module.exports = {
   registerUser,
   loginUser,
+  generateInviteCode,
+  getInviteCodes,
 };

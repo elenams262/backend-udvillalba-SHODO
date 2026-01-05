@@ -1,6 +1,10 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+/**
+ * Middleware para proteger rutas.
+ * Verifica que el JWT sea válido y adjunta el usuario a la petición.
+ */
 const protect = async (req, res, next) => {
   let token;
 
@@ -17,31 +21,45 @@ const protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // 3. Obtener el usuario del token y adjuntarlo al objeto request
-      // ✅ CORREGIDO: Usamos "-contraseña" en lugar de "-password"
+      // ✅ Usamos "-contraseña" porque así se llama el campo en tu modelo
       req.user = await User.findById(decoded.id).select("-contraseña");
 
-      next(); // Continuar a la siguiente función (la ruta protegida)
+      if (!req.user) {
+        return res
+          .status(401)
+          .json({ msg: "No autorizado, usuario no encontrado" });
+      }
+
+      return next(); // Continuar a la siguiente función
     } catch (error) {
-      console.error(error);
-      return res.status(401).json({ msg: "No autorizado, token fallido" }); // ✅ AÑADIDO: return
+      console.error("Error en Protect Middleware:", error.message);
+      return res
+        .status(401)
+        .json({ msg: "No autorizado, token fallido o expirado" });
     }
   }
 
-  // ✅ CORREGIDO: Añadido 'return' para evitar que se ejecute código después
+  // 4. Si no se encontró ningún token en los headers
   if (!token) {
     return res.status(401).json({ msg: "No autorizado, no hay token" });
   }
 };
 
+/**
+ * Middleware para restringir acceso solo a administradores.
+ * Debe usarse SIEMPRE después del middleware 'protect'.
+ */
 const admin = (req, res, next) => {
-  // Verificamos si existe el usuario y si su campo 'rol' es 'admin'
+  // Verificamos si existe el usuario (cargado por 'protect') y si su campo 'rol' es 'admin'
   if (req.user && req.user.rol === "admin") {
-    next(); // Es admin, dejamos pasar
+    return next(); // Es admin, dejamos pasar
   } else {
-    // ✅ CORREGIDO: Cambiado código de error de 401 a 403 (más apropiado)
-    return res.status(403).json({ msg: "No autorizado como administrador" });
+    // 403 Forbidden es el error correcto cuando el usuario está autenticado pero no tiene permisos
+    return res
+      .status(403)
+      .json({ msg: "Acceso denegado: Se requiere rol de administrador" });
   }
 };
 
-// Exportamos ambas funciones
+// Exportamos ambas funciones para usarlas en las rutas
 module.exports = { protect, admin };
