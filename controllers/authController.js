@@ -8,7 +8,8 @@ const generateToken = (id) => {
 };
 
 // --- REGISTRO DE USUARIO ---
-const registerUser = async (req, res) => {
+// ✅ Se incluyen req, res y next para evitar errores de referencia en el catch
+const registerUser = async (req, res, next) => {
   const {
     username,
     nombre,
@@ -20,6 +21,7 @@ const registerUser = async (req, res) => {
   } = req.body;
 
   try {
+    // 1. VALIDAR CÓDIGO DE INVITACIÓN
     if (!codigoInvitacion) {
       return res
         .status(400)
@@ -30,12 +32,14 @@ const registerUser = async (req, res) => {
       code: codigoInvitacion,
       used: false,
     });
+
     if (!invite) {
       return res
         .status(400)
         .json({ mensaje: "Código inválido o ya utilizado" });
     }
 
+    // 2. VERIFICAR SI EL USERNAME YA EXISTE
     let userExists = await User.findOne({ username });
     if (userExists) {
       return res
@@ -43,36 +47,52 @@ const registerUser = async (req, res) => {
         .json({ mensaje: "El nombre de usuario ya está en uso" });
     }
 
+    // 3. PROCESAR FECHA DE NACIMIENTO
     const dateObject = new Date(fechanacimiento);
     if (isNaN(dateObject.getTime())) {
       return res.status(400).json({ mensaje: "Fecha de nacimiento inválida" });
     }
 
+    // 4. CREAR EL USUARIO
     const user = new User({
       username,
       nombre,
       apellidos,
       telefono,
-      fechanacimiento: dateObject,
+      fechanacimiento: dateObject, // Usamos el objeto Date validado
       contraseña,
-      role: "usuario",
+      role: "usuario", // Valor por defecto para nuevos registros
     });
 
+    // El middleware en models/User.js se encarga de encriptar la contraseña aquí
     await user.save();
 
+    // 5. MARCAR CÓDIGO COMO USADO
     invite.used = true;
+    // @ts-ignore - Añadimos quién usó el código si tu esquema lo permite
     invite.usedBy = user._id;
     await invite.save();
 
+    // 6. RESPUESTA AL FRONTEND
+    // Enviamos 'role' de la DB como 'rol' para mantener compatibilidad con tu Angular
     res.status(201).json({
       _id: user._id,
       username: user.username,
       nombre: user.nombre,
-      rol: user.role, // Enviamos el campo 'role' de la DB como 'rol' para Angular
+      rol: user.role,
       token: generateToken(user._id),
     });
   } catch (err) {
+    // ✅ Manejo de error robusto: evita el error "next is not a function"
     console.error("Error en Registro:", err.message);
+
+    // Si el error es por duplicado en MongoDB (aunque lo validamos arriba)
+    if (err.code === 11000) {
+      return res
+        .status(400)
+        .json({ mensaje: "El nombre de usuario ya está registrado" });
+    }
+
     res.status(500).json({
       mensaje: "Error en el servidor al registrar usuario",
       error: err.message,
@@ -80,19 +100,20 @@ const registerUser = async (req, res) => {
   }
 };
 
-// --- LOGIN DE USUARIO (Esta es la función que faltaba) ---
+// --- LOGIN DE USUARIO ---
 const loginUser = async (req, res) => {
   const { username, contraseña } = req.body;
 
   try {
     const user = await User.findOne({ username });
 
+    // Verificamos usuario y comparamos contraseña usando el método del modelo
     if (user && (await user.matchPassword(contraseña))) {
       res.json({
         _id: user._id,
         username: user.username,
         nombre: user.nombre,
-        rol: user.role,
+        rol: user.role, // Mapeo consistente: role (DB) -> rol (Frontend)
         token: generateToken(user._id),
       });
     } else {
@@ -107,6 +128,7 @@ const loginUser = async (req, res) => {
 // --- GENERAR CÓDIGO DE INVITACIÓN (Solo Admin) ---
 const generateInviteCode = async (req, res) => {
   try {
+    // Genera un código alfanumérico corto de 6 caracteres
     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     const invite = new InviteCode({ code: newCode });
     await invite.save();
@@ -120,6 +142,7 @@ const generateInviteCode = async (req, res) => {
 // --- LISTAR CÓDIGOS (Solo Admin) ---
 const getInviteCodes = async (req, res) => {
   try {
+    // Listamos todos los códigos, ordenando por los más recientes primero
     const codes = await InviteCode.find().sort({ createdAt: -1 });
     res.json(codes);
   } catch (err) {
@@ -128,7 +151,7 @@ const getInviteCodes = async (req, res) => {
   }
 };
 
-// Exportar todas las funciones
+// Exportar todas las funciones para ser usadas en routes/auth.js
 module.exports = {
   registerUser,
   loginUser,
