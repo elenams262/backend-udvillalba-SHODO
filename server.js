@@ -16,6 +16,21 @@ dotenv.config();
 connectDB();
 const app = express();
 
+// --- CRON JOBS (Tareas programadas) ---
+const cron = require("node-cron");
+const actualizarClasificacion = require("./services/scrapingService");
+
+// Programar la actualización automática
+// "0 * * * *" significa "en el minuto 0 de cada hora"
+cron.schedule("0 * * * *", () => {
+  actualizarClasificacion();
+});
+
+// Opción para ejecutarlo al arrancar (para probar que funciona ya)
+setTimeout(() => {
+  actualizarClasificacion();
+}, 5000); // 5 segundos después de iniciar
+
 // --- CONFIGURACIÓN DE CORS ---
 // Se ha añadido explícitamente tu URL de Vercel
 
