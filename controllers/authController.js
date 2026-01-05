@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const InviteCode = require("../models/InvitacionCodigo"); // Asegúrate de que el archivo se llame exactamente así
+const InviteCode = require("../models/InvitacionCodigo");
 const jwt = require("jsonwebtoken");
 
 // Función para generar el token JWT
@@ -67,7 +67,7 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ mensaje: "Fecha de nacimiento inválida" });
     }
 
-    // 4. CREAR EL USUARIO (Usando 'role' para coincidir con tu DB)
+    // 4. CREAR EL USUARIO
     const user = new User({
       username,
       nombre,
@@ -75,7 +75,7 @@ const registerUser = async (req, res) => {
       telefono,
       fechanacimiento: dateObject,
       contraseña,
-      role: "usuario", // Cambiado de 'rol' a 'role'
+      role: "usuario",
     });
 
     await user.save();
@@ -90,14 +90,24 @@ const registerUser = async (req, res) => {
       _id: user._id,
       username: user.username,
       nombre: user.nombre,
-      rol: user.role, // Lo enviamos como 'rol' para que tu Front no falle
+      rol: user.role,
       token: generateToken(user._id),
     });
   } catch (err) {
+    // ✅ CORRECCIÓN CRÍTICA: Eliminamos 'next' para evitar el error "next is not a function"
     console.error("Error en Registro:", err.message);
-    res
-      .status(500)
-      .json({ mensaje: "Error en el servidor al registrar usuario" });
+
+    // Si el error es por un duplicado que MongoDB no detectó antes
+    if (err.code === 11000) {
+      return res
+        .status(400)
+        .json({ mensaje: "El nombre de usuario ya está registrado" });
+    }
+
+    res.status(500).json({
+      mensaje: "Error en el servidor al registrar usuario",
+      error: err.message,
+    });
   }
 };
 
@@ -113,7 +123,7 @@ const loginUser = async (req, res) => {
         _id: user._id,
         username: user.username,
         nombre: user.nombre,
-        rol: user.role, // Enviamos el campo 'role' de la DB bajo el nombre 'rol'
+        rol: user.role,
         token: generateToken(user._id),
       });
     } else {
