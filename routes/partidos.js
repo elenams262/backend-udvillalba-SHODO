@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-// ✅ CORRECCIÓN: Importar también 'admin'
+// ✅ Se importa 'admin'
 const { protect, admin } = require("../middleware/authmiddleware");
-
 const {
   getNextMatch,
   createMatch,
@@ -10,10 +9,9 @@ const {
   deleteMatch,
 } = require("../controllers/partidosController");
 
-// Ruta pública
 router.get("/", getNextMatch);
 
-// ✅ CORRECCIÓN: Añadir 'admin' a estas rutas
+// ✅ Se añade 'admin' a las rutas protegidas
 router.post("/", protect, admin, createMatch);
 router.put("/:id", protect, admin, updateMatch);
 router.delete("/:id", protect, admin, deleteMatch);
