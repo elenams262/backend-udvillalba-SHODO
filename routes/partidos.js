@@ -1,17 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../middleware/authmiddleware");
-// Importamos la nueva función deleteMatch
+// ✅ CORRECCIÓN: Importar también 'admin'
+const { protect, admin } = require("../middleware/authmiddleware");
+
 const {
   getNextMatch,
   createMatch,
   updateMatch,
-  deleteMatch, // <--- AÑADIR
+  deleteMatch,
 } = require("../controllers/partidosController");
 
+// Ruta pública
 router.get("/", getNextMatch);
-router.post("/", protect, createMatch);
-router.put("/:id", protect, updateMatch);
-router.delete("/:id", protect, deleteMatch); // <--- NUEVA RUTA
+
+// ✅ CORRECCIÓN: Añadir 'admin' a estas rutas
+router.post("/", protect, admin, createMatch);
+router.put("/:id", protect, admin, updateMatch);
+router.delete("/:id", protect, admin, deleteMatch);
 
 module.exports = router;
