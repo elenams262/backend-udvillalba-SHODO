@@ -9,7 +9,8 @@ const generateToken = (id) => {
 
 // --- REGISTRO DE USUARIO ---
 // ✅ Se incluyen req, res y next para evitar errores de referencia en el catch
-const registerUser = async (req, res, next) => {
+const registerUser = async (req, res) => {
+  // ✅ Eliminamos 'next' de aquí
   const {
     username,
     nombre,
@@ -21,7 +22,7 @@ const registerUser = async (req, res, next) => {
   } = req.body;
 
   try {
-    // 1. VALIDAR CÓDIGO DE INVITACIÓN
+    // 1. VALIDACIONES INICIALES
     if (!codigoInvitacion) {
       return res
         .status(400)
@@ -32,14 +33,12 @@ const registerUser = async (req, res, next) => {
       code: codigoInvitacion,
       used: false,
     });
-
     if (!invite) {
       return res
         .status(400)
         .json({ mensaje: "Código inválido o ya utilizado" });
     }
 
-    // 2. VERIFICAR SI EL USERNAME YA EXISTE
     let userExists = await User.findOne({ username });
     if (userExists) {
       return res
@@ -47,55 +46,38 @@ const registerUser = async (req, res, next) => {
         .json({ mensaje: "El nombre de usuario ya está en uso" });
     }
 
-    // 3. PROCESAR FECHA DE NACIMIENTO
-    const dateObject = new Date(fechanacimiento);
-    if (isNaN(dateObject.getTime())) {
-      return res.status(400).json({ mensaje: "Fecha de nacimiento inválida" });
-    }
-
-    // 4. CREAR EL USUARIO
+    // 2. CREAR EL USUARIO
     const user = new User({
       username,
       nombre,
       apellidos,
       telefono,
-      fechanacimiento: dateObject, // Usamos el objeto Date validado
+      fechanacimiento,
       contraseña,
-      role: "usuario", // Valor por defecto para nuevos registros
+      role: "usuario",
     });
 
-    // El middleware en models/User.js se encarga de encriptar la contraseña aquí
+    // 3. GUARDAR Y MARCAR CÓDIGO
     await user.save();
 
-    // 5. MARCAR CÓDIGO COMO USADO
     invite.used = true;
-    // @ts-ignore - Añadimos quién usó el código si tu esquema lo permite
     invite.usedBy = user._id;
     await invite.save();
 
-    // 6. RESPUESTA AL FRONTEND
-    // Enviamos 'role' de la DB como 'rol' para mantener compatibilidad con tu Angular
-    res.status(201).json({
+    // 4. RESPUESTA ÉXITO
+    return res.status(201).json({
       _id: user._id,
       username: user.username,
-      nombre: user.nombre,
       rol: user.role,
       token: generateToken(user._id),
     });
   } catch (err) {
-    // ✅ Manejo de error robusto: evita el error "next is not a function"
-    console.error("Error en Registro:", err.message);
+    // ✅ MANEJO SEGURO: Sin usar la palabra 'next'
+    console.error("Error detectado:", err.message);
 
-    // Si el error es por duplicado en MongoDB (aunque lo validamos arriba)
-    if (err.code === 11000) {
-      return res
-        .status(400)
-        .json({ mensaje: "El nombre de usuario ya está registrado" });
-    }
-
-    res.status(500).json({
+    return res.status(500).json({
       mensaje: "Error en el servidor al registrar usuario",
-      error: err.message,
+      error: err.message, // Aquí nos dirá si falta un campo o la DB falló
     });
   }
 };
