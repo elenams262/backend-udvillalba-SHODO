@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const InviteCode = require("../models/InviteCode"); // Importante crear este modelo
+const InviteCode = require("../models/InvitacionCodigo"); // Importante crear este modelo
 const jwt = require("jsonwebtoken");
 
 const generateToken = (id) => {
