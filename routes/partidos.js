@@ -4,12 +4,14 @@ const router = express.Router();
 const { protect, admin } = require("../middleware/authmiddleware");
 const {
   getNextMatch,
+  getAllMatches,
   createMatch,
   updateMatch,
   deleteMatch,
 } = require("../controllers/partidosController");
 
 router.get("/", getNextMatch);
+router.get("/all", getAllMatches); // Ruta para ver todos los partidos (Admin/Calendario)
 
 // ✅ Se añade 'admin' a las rutas protegidas
 router.post("/", protect, admin, createMatch);

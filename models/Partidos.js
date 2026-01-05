@@ -42,6 +42,14 @@ const MatchSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    golesLocal: {
+      type: Number,
+      default: null,
+    },
+    golesVisitante: {
+      type: Number,
+      default: null,
+    },
   },
   {
     timestamps: true,

@@ -1,5 +1,15 @@
 const Match = require("../models/Partidos");
 
+const getAllMatches = async (req, res) => {
+  try {
+    const matches = await Match.find({}).sort({ fecha: 1 });
+    res.json(matches);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error al obtener los partidos");
+  }
+};
+
 const getNextMatch = async (req, res) => {
   const NUESTRO_EQUIPO = process.env.NUESTRO_EQUIPO || "UD Villalba"; // Fallback por seguridad
 
@@ -102,6 +112,7 @@ const deleteMatch = async (req, res) => {
 // IMPORTANTE: Añade 'deleteMatch' a la lista de exportaciones
 module.exports = {
   getNextMatch,
+  getAllMatches,
   createMatch,
   updateMatch,
   deleteMatch, // <--- AÑADIR ESTO
