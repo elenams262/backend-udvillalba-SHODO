@@ -50,11 +50,12 @@ const protect = async (req, res, next) => {
  * Debe usarse SIEMPRE después del middleware 'protect'.
  */
 const admin = (req, res, next) => {
-  // Verificamos si existe el usuario (cargado por 'protect') y si su campo 'rol' es 'admin'
-  if (req.user && req.user.role === "admin") {
-    return next(); // Es admin, dejamos pasar
+  // Verificamos 'role' (DB) o 'rol' (posible mapeo previo)
+  const userRole = req.user.role || req.user.rol;
+
+  if (req.user && userRole === "admin") {
+    return next();
   } else {
-    // 403 Forbidden es el error correcto cuando el usuario está autenticado pero no tiene permisos
     return res
       .status(403)
       .json({ msg: "Acceso denegado: Se requiere rol de administrador" });
