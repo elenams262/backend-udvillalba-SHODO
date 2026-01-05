@@ -2,36 +2,11 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema({
-  nombre: {
-    type: String,
-    required: true,
-  },
-  apellidos: {
-    type: String,
-    required: true,
-  },
-  correo: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  telefono: {
-    type: String,
-    required: true,
-  },
-  fechanacimiento: {
-    type: Date,
-    required: true,
-  },
-  contraseña: {
-    type: String,
-    required: true,
-  },
-  rol: {
-    type: String,
-    default: "usuario", // Por defecto todos son usuarios normales
-    required: true,
-  },
+  username: { type: String, required: true, unique: true }, // Nuevo campo
+  contraseña: { type: String, required: true },
+  role: { type: String, default: "user" },
+  // El email ya no es requerido
+  email: { type: String, required: false },
 });
 
 // 1. Encriptar la contraseña antes de guardar (Middleware)
