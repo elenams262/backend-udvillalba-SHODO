@@ -1,20 +1,22 @@
 const User = require("../models/User");
-const InviteCode = require("../models/InvitacionCodigo"); // Importante crear este modelo
+const InviteCode = require("../models/InvitacionCodigo"); // Asegúrate de que el archivo se llame exactamente así
 const jwt = require("jsonwebtoken");
 
+// Función para generar el token JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
 };
 
+// --- REGISTRO DE USUARIO ---
 const registerUser = async (req, res) => {
   const {
-    username, // Ahora usamos username en lugar de correo
+    username,
     nombre,
     apellidos,
     telefono,
     fechanacimiento,
     contraseña,
-    codigoInvitacion, // El código que le dio el admin
+    codigoInvitacion,
   } = req.body;
 
   try {
@@ -29,6 +31,7 @@ const registerUser = async (req, res) => {
       code: codigoInvitacion,
       used: false,
     });
+
     if (!invite) {
       return res
         .status(400)
@@ -50,17 +53,13 @@ const registerUser = async (req, res) => {
         .json({ mensaje: "La fecha de nacimiento es obligatoria" });
     }
 
-    let birthDateISO;
+    let birthDateISO = fechanacimiento;
     if (typeof fechanacimiento === "string" && fechanacimiento.includes("/")) {
       const parts = fechanacimiento.split("/");
       if (parts.length === 3) {
         const [day, month, year] = parts;
         birthDateISO = `${year}-${month}-${day}`;
-      } else {
-        birthDateISO = fechanacimiento;
       }
-    } else {
-      birthDateISO = fechanacimiento;
     }
 
     const dateObject = new Date(birthDateISO);
@@ -68,7 +67,7 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ mensaje: "Fecha de nacimiento inválida" });
     }
 
-    // 4. CREAR EL USUARIO
+    // 4. CREAR EL USUARIO (Usando 'role' para coincidir con tu DB)
     const user = new User({
       username,
       nombre,
@@ -76,31 +75,35 @@ const registerUser = async (req, res) => {
       telefono,
       fechanacimiento: dateObject,
       contraseña,
-      rol: "usuario", // Rol por defecto
+      role: "usuario", // Cambiado de 'rol' a 'role'
     });
 
     await user.save();
 
     // 5. MARCAR CÓDIGO COMO USADO
     invite.used = true;
-    invite.usedBy = user._id; // Opcional: guardar quién lo usó
+    invite.usedBy = user._id;
     await invite.save();
 
+    // 6. RESPUESTA AL FRONTEND
     res.status(201).json({
       _id: user._id,
       username: user.username,
       nombre: user.nombre,
-      rol: user.role,
+      rol: user.role, // Lo enviamos como 'rol' para que tu Front no falle
       token: generateToken(user._id),
     });
   } catch (err) {
     console.error("Error en Registro:", err.message);
-    res.status(500).send("Error en el servidor");
+    res
+      .status(500)
+      .json({ mensaje: "Error en el servidor al registrar usuario" });
   }
 };
 
+// --- LOGIN DE USUARIO ---
 const loginUser = async (req, res) => {
-  const { username, contraseña } = req.body; // Login ahora por username
+  const { username, contraseña } = req.body;
 
   try {
     const user = await User.findOne({ username });
@@ -110,7 +113,7 @@ const loginUser = async (req, res) => {
         _id: user._id,
         username: user.username,
         nombre: user.nombre,
-        rol: user.role,
+        rol: user.role, // Enviamos el campo 'role' de la DB bajo el nombre 'rol'
         token: generateToken(user._id),
       });
     } else {
@@ -118,35 +121,34 @@ const loginUser = async (req, res) => {
     }
   } catch (err) {
     console.error("Error en Login:", err.message);
-    res.status(500).send("Error en el servidor");
+    res.status(500).json({ mensaje: "Error en el servidor al iniciar sesión" });
   }
 };
-// Generar un nuevo código aleatorio (Solo Admin)
+
+// --- GENERAR CÓDIGO DE INVITACIÓN (Solo Admin) ---
 const generateInviteCode = async (req, res) => {
   try {
-    // Genera un código de 6 caracteres aleatorios (letras y números)
     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
     const invite = new InviteCode({ code: newCode });
     await invite.save();
-
     res.status(201).json(invite);
   } catch (err) {
+    console.error("Error generando código:", err.message);
     res.status(500).json({ mensaje: "Error al generar el código" });
   }
 };
 
-// Listar todos los códigos para que el admin los vea
+// --- LISTAR CÓDIGOS (Solo Admin) ---
 const getInviteCodes = async (req, res) => {
   try {
     const codes = await InviteCode.find().sort({ createdAt: -1 });
     res.json(codes);
   } catch (err) {
+    console.error("Error obteniendo códigos:", err.message);
     res.status(500).json({ mensaje: "Error al obtener los códigos" });
   }
 };
 
-// No olvides añadirlos al module.exports
 module.exports = {
   registerUser,
   loginUser,
