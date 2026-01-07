@@ -201,7 +201,7 @@ const actualizarPartidos = async () => {
         }
 
         // Campos
-        const fechaRaw = partidoData.fecha; // Ej: "19/09/2021"
+        const fechaRaw = partidoData.fecha; // Ej: "19-09-2021" o "19/09/2021"
         const horaRaw = partidoData.hora; // Ej: "12:00"
         const campo = partidoData.campo || partidoData.nombre_campo || "";
 
@@ -225,10 +225,12 @@ const actualizarPartidos = async () => {
         const golesVisitante = partidoData.goles_visitante;
 
         // Conversión de fecha
-        // Parse "DD/MM/YYYY" to Date object
+        // Parse "DD/MM/YYYY" or "DD-MM-YYYY" to Date object
         let fechaDate = null; // Default null
         if (fechaRaw) {
-          const [day, month, year] = fechaRaw.split("/");
+          // Normalizar fecha reemplazando - por /
+          const fechaNorm = fechaRaw.replace(/-/g, "/");
+          const [day, month, year] = fechaNorm.split("/");
           if (day && month && year) {
             fechaDate = new Date(
               `${year}-${month}-${day}T${horaRaw || "00:00"}:00`
