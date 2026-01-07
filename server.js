@@ -18,17 +18,24 @@ const app = express();
 
 // --- CRON JOBS (Tareas programadas) ---
 const cron = require("node-cron");
-const actualizarClasificacion = require("./services/scrapingService");
+const {
+  actualizarClasificacion,
+  actualizarPartidos,
+} = require("./services/scrapingService");
 
 // Programar la actualización automática
 // "0 * * * *" significa "en el minuto 0 de cada hora"
 cron.schedule("0 * * * *", () => {
+  console.log("⏰ Ejecutando cron: Clasificación y Partidos");
   actualizarClasificacion();
+  actualizarPartidos();
 });
 
 // Opción para ejecutarlo al arrancar (para probar que funciona ya)
 setTimeout(() => {
+  console.log("🚀 Ejecución inicial: Clasificación y Partidos");
   actualizarClasificacion();
+  actualizarPartidos();
 }, 5000); // 5 segundos después de iniciar
 
 // --- CONFIGURACIÓN DE CORS ---
