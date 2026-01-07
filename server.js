@@ -12,45 +12,35 @@ const partidosRoutes = require("./routes/partidos");
 
 dotenv.config();
 
-// Conectar a la base de datos
 connectDB();
 const app = express();
 
-// --- CRON JOBS (Tareas programadas) ---
 const cron = require("node-cron");
 const {
   actualizarClasificacion,
   actualizarPartidos,
 } = require("./services/scrapingService");
 
-// Programar la actualización automática
-// "0 * * * *" significa "en el minuto 0 de cada hora"
 cron.schedule("0 * * * *", () => {
   console.log("⏰ Ejecutando cron: Clasificación y Partidos");
   actualizarClasificacion();
   actualizarPartidos();
 });
 
-// Opción para ejecutarlo al arrancar (para probar que funciona ya)
 setTimeout(() => {
   console.log("🚀 Ejecución inicial: Clasificación y Partidos");
   actualizarClasificacion();
   actualizarPartidos();
-}, 5000); // 5 segundos después de iniciar
+}, 5000);
 
-// --- CONFIGURACIÓN DE CORS ---
-// Se ha añadido explícitamente tu URL de Vercel
-
-// server.js (en Render)
 const allowedOrigins = [
-  "https://infantil-femenino-udvillalba.vercel.app", // Tu URL real
+  "https://infantil-femenino-udvillalba.vercel.app",
   "http://localhost:4200",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Permitir si no hay origen (como apps móviles) o si está en la lista o si es de vercel
       if (
         !origin ||
         allowedOrigins.includes(origin) ||
@@ -69,7 +59,6 @@ app.use(
 
 app.use(express.json());
 
-// --- CONFIGURACIÓN DE MULTER ---
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = "uploads/";
@@ -107,15 +96,12 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Límite 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: fileFilter,
 });
 
-// --- SERVIR IMÁGENES ESTÁTICAS ---
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// --- ENDPOINTS DE SUBIDA ---
-// Este endpoint es el que usa ApiService.subirImagen
 app.post("/api/upload", upload.single("imagen"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No se ha subido ningún archivo." });
@@ -123,7 +109,6 @@ app.post("/api/upload", upload.single("imagen"), (req, res) => {
   res.json({ filename: req.file.filename });
 });
 
-// Endpoints multi-subida para el panel de administración
 app.post("/api/jugadoras/multi", upload.array("jugadoras", 20), (req, res) => {
   if (!req.files || req.files.length === 0)
     return res.status(400).json({ error: "Sin archivos" });
@@ -136,7 +121,6 @@ app.post("/api/escudos/multi", upload.array("escudos", 20), (req, res) => {
   res.json({ files: req.files.map((f) => f.filename) });
 });
 
-// --- RUTAS DE LA API ---
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/clasificacion", clasificacionRoutes);
@@ -146,7 +130,6 @@ app.get("/", (req, res) => {
   res.send("API UD Villalba funcionando...");
 });
 
-// Middleware de errores global
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
@@ -160,7 +143,5 @@ app.use((err, req, res, next) => {
   next();
 });
 
-// Cambia esto:
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => console.log(`Servidor en puerto ${PORT}`));
-// El "0.0.0.0" ayuda a Render a encontrar el servicio más rápido.

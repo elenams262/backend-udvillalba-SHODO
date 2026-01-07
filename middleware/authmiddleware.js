@@ -10,7 +10,7 @@ const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      // Buscamos al usuario y lo cargamos en la petición
+
       req.user = await User.findById(decoded.id).select("-contraseña");
       if (!req.user)
         return res.status(401).json({ msg: "Usuario no encontrado" });
@@ -23,7 +23,7 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-  // ✅ CORRECCIÓN DEFINITIVA: Acepta 'role' o 'rol' y es insensible a mayúsculas
+
   const userRole = (req.user.role || req.user.rol || "").toLowerCase();
 
   if (req.user && userRole === "admin") {

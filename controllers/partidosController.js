@@ -2,25 +2,15 @@ const Match = require("../models/Partidos");
 
 const getAllMatches = async (req, res) => {
   try {
-    // Obtenemos todos los partidos
     let matches = await Match.find({});
 
-    // Ordenar en JS para manejar mejor los nulls
-    // Prioridad:
-    // 1. Fecha (Ascendente). Null al final.
-    // 2. Número de Jornada (Ascendente).
-
     matches.sort((a, b) => {
-      // Si ambos tienen fecha, usar fecha
       if (a.fecha && b.fecha) {
         return new Date(a.fecha) - new Date(b.fecha);
       }
-      // Si a no tiene fecha, va después
       if (!a.fecha && b.fecha) return 1;
-      // Si b no tiene fecha, va después
       if (a.fecha && !b.fecha) return -1;
 
-      // Si ninguno tiene fecha, ordenar por jornada
       return (a.numeroJornada || 0) - (b.numeroJornada || 0);
     });
 
@@ -32,17 +22,15 @@ const getAllMatches = async (req, res) => {
 };
 
 const getNextMatch = async (req, res) => {
-  const NUESTRO_EQUIPO = process.env.NUESTRO_EQUIPO || "UD Villalba"; // Fallback por seguridad
+  const NUESTRO_EQUIPO = process.env.NUESTRO_EQUIPO || "UD Villalba";
 
   try {
-    // 1. Prioridad: Buscar si hay un partido marcado manualmente como "seleccionado"
     let nextMatch = await Match.findOne({ seleccionado: true });
 
-    // 2. Si no hay seleccionado, buscamos el partido más próximo que NO se haya jugado
     if (!nextMatch) {
       nextMatch = await Match.findOne({
         $or: [
-          { equipoLocal: { $regex: "VILLALBA", $options: "i" } }, // Busca semánticamente
+          { equipoLocal: { $regex: "VILLALBA", $options: "i" } },
           { equipoVisitante: { $regex: "VILLALBA", $options: "i" } },
         ],
         isPlayed: false,
@@ -50,12 +38,9 @@ const getNextMatch = async (req, res) => {
     }
 
     if (!nextMatch) {
-      // Si no hay partido, devolvemos null pero con status 200 para que el front no de error rojo
       return res.status(200).json(null);
     }
 
-    // Lógica visual para el frontend
-    // Chequear si "UD Villalba" está en local o visitante usando includes para ser más flexibles
     const isLocal = nextMatch.equipoLocal.toUpperCase().includes("VILLALBA");
 
     const rival = isLocal ? nextMatch.equipoVisitante : nextMatch.equipoLocal;
@@ -68,13 +53,12 @@ const getNextMatch = async (req, res) => {
       ? nextMatch.escudoVisitante
       : nextMatch.escudoLocal;
 
-    // Devolvemos todos los datos, incluido el _id
     res.json({
-      _id: nextMatch._id, // IMPRESCINDIBLE para poder editarlo después
+      _id: nextMatch._id,
       jornada: nextMatch.jornada,
       fecha: nextMatch.fecha,
       hora: nextMatch.hora,
-      ubicacion: nextMatch.ubicacion, // Enviamos un raw location también si se quiere
+      ubicacion: nextMatch.ubicacion,
       rival: rival,
       escudoRival: escudoRival,
       partidoCasa: isLocal,
@@ -92,10 +76,8 @@ const selectMatchForJornada = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1. Deseleccionar todos los partidos primero
     await Match.updateMany({}, { seleccionado: false });
 
-    // 2. Seleccionar el indicado
     const partidoActivado = await Match.findByIdAndUpdate(
       id,
       { seleccionado: true },
@@ -124,13 +106,11 @@ const createMatch = async (req, res) => {
   }
 };
 
-// --- ESTA ES LA FUNCIÓN QUE FALTABA ---
 const updateMatch = async (req, res) => {
   try {
     const { id } = req.params;
-    // Buscamos por ID y actualizamos
     const partidoActualizado = await Match.findByIdAndUpdate(id, req.body, {
-      new: true, // Para que devuelva el objeto ya actualizado
+      new: true,
     });
 
     if (!partidoActualizado) {
@@ -143,8 +123,6 @@ const updateMatch = async (req, res) => {
     res.status(500).send("Error al actualizar el partido");
   }
 };
-
-// ... código anterior ...
 
 const deleteMatch = async (req, res) => {
   try {
@@ -162,12 +140,11 @@ const deleteMatch = async (req, res) => {
   }
 };
 
-// IMPORTANTE: Añade 'deleteMatch' a la lista de exportaciones
 module.exports = {
   getNextMatch,
   getAllMatches,
   createMatch,
   updateMatch,
   deleteMatch,
-  selectMatchForJornada, // <--- NUEVA FUNCIÓN
+  selectMatchForJornada,
 };

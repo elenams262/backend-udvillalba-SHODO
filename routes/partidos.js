@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-// ✅ Se importa 'admin'
 const { protect, admin } = require("../middleware/authmiddleware");
 const {
   getNextMatch,
@@ -8,16 +7,15 @@ const {
   createMatch,
   updateMatch,
   deleteMatch,
-  selectMatchForJornada, // <--- IMPORTACIÓN
+  selectMatchForJornada,
 } = require("../controllers/partidosController");
 
 router.get("/", getNextMatch);
-router.get("/all", getAllMatches); // Ruta para ver todos los partidos (Admin/Calendario)
+router.get("/all", getAllMatches);
 
-// ✅ Se añade 'admin' a las rutas protegidas
 router.post("/", protect, admin, createMatch);
 router.put("/:id", protect, admin, updateMatch);
 router.delete("/:id", protect, admin, deleteMatch);
-router.put("/select/:id", protect, admin, selectMatchForJornada); // <--- NUEVA RUTA
+router.put("/select/:id", protect, admin, selectMatchForJornada);
 
 module.exports = router;
