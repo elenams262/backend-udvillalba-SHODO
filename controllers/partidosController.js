@@ -34,6 +34,21 @@ const getNextMatch = async (req, res) => {
           { equipoVisitante: { $regex: "VILLALBA", $options: "i" } },
         ],
         isPlayed: false,
+        // Excluir partidos fantasmas de descanso
+        $nor: [
+          {
+            equipoLocal: {
+              $regex: "No asignado|Equipo Fuera|Equipo Casa",
+              $options: "i",
+            },
+          },
+          {
+            equipoVisitante: {
+              $regex: "No asignado|Equipo Fuera|Equipo Casa",
+              $options: "i",
+            },
+          },
+        ],
       }).sort({ fecha: 1 });
     }
 
