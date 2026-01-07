@@ -192,6 +192,14 @@ const actualizarPartidos = async () => {
         const localLimpio = localName.replace(/\s+/g, " ").trim();
         const visitanteLimpio = visitanteName.replace(/\s+/g, " ").trim();
 
+        // FILTRO: Solo guardar partidos del VILLALBA
+        if (
+          !localLimpio.toUpperCase().includes("VILLALBA") &&
+          !visitanteLimpio.toUpperCase().includes("VILLALBA")
+        ) {
+          continue;
+        }
+
         // Campos
         const fechaRaw = partidoData.fecha; // Ej: "19/09/2021"
         const horaRaw = partidoData.hora; // Ej: "12:00"

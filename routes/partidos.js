@@ -8,6 +8,7 @@ const {
   createMatch,
   updateMatch,
   deleteMatch,
+  selectMatchForJornada, // <--- IMPORTACIÓN
 } = require("../controllers/partidosController");
 
 router.get("/", getNextMatch);
@@ -17,5 +18,6 @@ router.get("/all", getAllMatches); // Ruta para ver todos los partidos (Admin/Ca
 router.post("/", protect, admin, createMatch);
 router.put("/:id", protect, admin, updateMatch);
 router.delete("/:id", protect, admin, deleteMatch);
+router.put("/select/:id", protect, admin, selectMatchForJornada); // <--- NUEVA RUTA
 
 module.exports = router;

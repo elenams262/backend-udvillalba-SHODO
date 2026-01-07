@@ -50,6 +50,11 @@ const MatchSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    // Para seleccionar manualmente qué partido se muestra en la web
+    seleccionado: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
