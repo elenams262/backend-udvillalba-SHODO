@@ -226,7 +226,7 @@ const actualizarPartidos = async () => {
 
         // Conversión de fecha
         // Parse "DD/MM/YYYY" to Date object
-        let fechaDate = new Date(); // default now
+        let fechaDate = null; // Default null
         if (fechaRaw) {
           const [day, month, year] = fechaRaw.split("/");
           if (day && month && year) {
@@ -250,6 +250,8 @@ const actualizarPartidos = async () => {
           ? jornadaNombre
           : `Jornada ${jornadaNombre}`;
 
+        const numeroJornada = parseInt(jornadaNombre.replace(/\D/g, "")) || 0;
+
         const partidoDB = await Partido.findOneAndUpdate(
           {
             jornada: jornadaStr,
@@ -258,8 +260,9 @@ const actualizarPartidos = async () => {
           },
           {
             ubicacion: campo,
-            fecha: fechaDate,
+            fecha: fechaDate, // Ahora puede ser null
             hora: horaRaw,
+            numeroJornada: numeroJornada, // Guardamos numero para ordenar
             escudoLocal: escudoLocal,
             escudoVisitante: escudoVisitante,
             golesLocal: isPlayed ? parseInt(golesLocal) : null,

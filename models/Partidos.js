@@ -7,6 +7,11 @@ const MatchSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // Para ordenamiento numérico
+    numeroJornada: {
+      type: Number,
+      required: true,
+    },
     // Nombre del Equipo Local
     equipoLocal: {
       type: String,

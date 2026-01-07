@@ -2,7 +2,28 @@ const Match = require("../models/Partidos");
 
 const getAllMatches = async (req, res) => {
   try {
-    const matches = await Match.find({}).sort({ fecha: 1 });
+    // Obtenemos todos los partidos
+    let matches = await Match.find({});
+
+    // Ordenar en JS para manejar mejor los nulls
+    // Prioridad:
+    // 1. Fecha (Ascendente). Null al final.
+    // 2. Número de Jornada (Ascendente).
+
+    matches.sort((a, b) => {
+      // Si ambos tienen fecha, usar fecha
+      if (a.fecha && b.fecha) {
+        return new Date(a.fecha) - new Date(b.fecha);
+      }
+      // Si a no tiene fecha, va después
+      if (!a.fecha && b.fecha) return 1;
+      // Si b no tiene fecha, va después
+      if (a.fecha && !b.fecha) return -1;
+
+      // Si ninguno tiene fecha, ordenar por jornada
+      return (a.numeroJornada || 0) - (b.numeroJornada || 0);
+    });
+
     res.json(matches);
   } catch (err) {
     console.error(err.message);
