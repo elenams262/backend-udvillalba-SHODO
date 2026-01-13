@@ -2,15 +2,11 @@ const User = require("../models/User");
 const InviteCode = require("../models/InvitacionCodigo");
 const jwt = require("jsonwebtoken");
 
-
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
 };
 
-
-
 const registerUser = async (req, res) => {
-
   const {
     username,
     nombre,
@@ -22,7 +18,6 @@ const registerUser = async (req, res) => {
   } = req.body;
 
   try {
-
     if (!codigoInvitacion) {
       return res
         .status(400)
@@ -46,7 +41,6 @@ const registerUser = async (req, res) => {
         .json({ mensaje: "El nombre de usuario ya está en uso" });
     }
 
-
     const user = new User({
       username,
       nombre,
@@ -54,16 +48,14 @@ const registerUser = async (req, res) => {
       telefono,
       fechanacimiento,
       contraseña,
-      role: "usuario",
+      role: invite.role || "usuario",
     });
-
 
     await user.save();
 
     invite.used = true;
     invite.usedBy = user._id;
     await invite.save();
-
 
     return res.status(201).json({
       _id: user._id,
@@ -72,7 +64,6 @@ const registerUser = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (err) {
-
     console.error("Error detectado:", err.message);
 
     return res.status(500).json({
@@ -82,13 +73,11 @@ const registerUser = async (req, res) => {
   }
 };
 
-
 const loginUser = async (req, res) => {
   const { username, contraseña } = req.body;
 
   try {
     const user = await User.findOne({ username });
-
 
     if (user && (await user.matchPassword(contraseña))) {
       res.json({
@@ -107,12 +96,14 @@ const loginUser = async (req, res) => {
   }
 };
 
-
 const generateInviteCode = async (req, res) => {
   try {
-
+    const { role } = req.body;
     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const invite = new InviteCode({ code: newCode });
+    const invite = new InviteCode({
+      code: newCode,
+      role: role || "usuario",
+    });
     await invite.save();
     res.status(201).json(invite);
   } catch (err) {
@@ -121,10 +112,8 @@ const generateInviteCode = async (req, res) => {
   }
 };
 
-
 const getInviteCodes = async (req, res) => {
   try {
-
     const codes = await InviteCode.find().sort({ createdAt: -1 });
     res.json(codes);
   } catch (err) {
@@ -132,7 +121,6 @@ const getInviteCodes = async (req, res) => {
     res.status(500).json({ mensaje: "Error al obtener los códigos" });
   }
 };
-
 
 module.exports = {
   registerUser,
