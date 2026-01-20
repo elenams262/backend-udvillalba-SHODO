@@ -4,14 +4,14 @@ const Team = require("../models/Equipos");
 const Partido = require("../models/Partidos");
 
 const URL_RFFM =
-  "https://www.rffm.es/competicion/clasificaciones?temporada=21&competicion=24037756&grupo=24037757&jornada=10&tipojuego=2";
+  "https://www.rffm.es/competicion/clasificaciones?temporada=21&competicion=24037756&grupo=24037757&tipojuego=2";
 
 const URL_CALENDARIO =
-  "https://www.rffm.es/competicion/calendario?temporada=21&competicion=24037756&grupo=24037757&jornada=10&tipojuego=2";
+  "https://www.rffm.es/competicion/calendario?temporada=21&competicion=24037756&grupo=24037757&tipojuego=2";
 
 const actualizarClasificacion = async () => {
   console.log(
-    "🔄 Iniciando actualización de clasificación desde RFFM (Método JSON)..."
+    "🔄 Iniciando actualización de clasificación desde RFFM (Método JSON)...",
   );
 
   try {
@@ -48,7 +48,7 @@ const actualizarClasificacion = async () => {
     if (!Array.isArray(clasificacion)) {
       console.warn(
         "⚠️ 'standings' no es un array válido.",
-        clasificacion ? "Tipo: " + typeof clasificacion : "Es null"
+        clasificacion ? "Tipo: " + typeof clasificacion : "Es null",
       );
       return;
     }
@@ -57,12 +57,12 @@ const actualizarClasificacion = async () => {
       console.warn("⚠️ No se encontraron datos de clasificación en el JSON.");
       console.log(
         "Claves disponibles en props.pageProps:",
-        Object.keys(jsonData.props.pageProps)
+        Object.keys(jsonData.props.pageProps),
       );
       if (jsonData.props.pageProps.data) {
         console.log(
           "Claves en props.pageProps.data:",
-          Object.keys(jsonData.props.pageProps.data)
+          Object.keys(jsonData.props.pageProps.data),
         );
       }
       return;
@@ -99,7 +99,7 @@ const actualizarClasificacion = async () => {
           GC: gc,
           puntos: puntos,
         },
-        { new: true }
+        { new: true },
       );
 
       if (equipoDB) {
@@ -110,7 +110,7 @@ const actualizarClasificacion = async () => {
     }
 
     console.log(
-      `🏁 Clasificación actualizada. Equipos sincronizados: ${equiposActualizados}`
+      `🏁 Clasificación actualizada. Equipos sincronizados: ${equiposActualizados}`,
     );
   } catch (error) {
     console.error("❌ Error en el proceso scraping:", error.message);
@@ -119,7 +119,7 @@ const actualizarClasificacion = async () => {
 
 const actualizarPartidos = async () => {
   console.log(
-    "🔄 Iniciando actualización de partidos desde RFFM (Método JSON)..."
+    "🔄 Iniciando actualización de partidos desde RFFM (Método JSON)...",
   );
 
   try {
@@ -135,7 +135,7 @@ const actualizarPartidos = async () => {
 
     if (!nextDataScript) {
       console.warn(
-        "⚠️ No se encontró el script __NEXT_DATA__ en la página de calendario."
+        "⚠️ No se encontró el script __NEXT_DATA__ en la página de calendario.",
       );
       return;
     }
@@ -146,7 +146,7 @@ const actualizarPartidos = async () => {
 
     if (!rounds || !Array.isArray(rounds)) {
       console.warn(
-        "⚠️ No se encontró la estructura de rondas (calendar.rounds)."
+        "⚠️ No se encontró la estructura de rondas (calendar.rounds).",
       );
       return;
     }
@@ -201,7 +201,7 @@ const actualizarPartidos = async () => {
           const [day, month, year] = fechaNorm.split("/");
           if (day && month && year) {
             fechaDate = new Date(
-              `${year}-${month}-${day}T${horaRaw || "00:00"}:00`
+              `${year}-${month}-${day}T${horaRaw || "00:00"}:00`,
             );
           }
         }
@@ -235,7 +235,7 @@ const actualizarPartidos = async () => {
             golesVisitante: isPlayed ? parseInt(golesVisitante) : null,
             isPlayed: isPlayed,
           },
-          { upsert: true, new: true, setDefaultsOnInsert: true }
+          { upsert: true, new: true, setDefaultsOnInsert: true },
         );
 
         if (partidoDB) partidosActualizados++;
