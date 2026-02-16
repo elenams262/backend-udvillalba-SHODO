@@ -4,10 +4,10 @@ const Team = require("../models/Equipos");
 const Partido = require("../models/Partidos");
 
 const URL_RFFM =
-  "https://www.rffm.es/competicion/clasificaciones?temporada=21&competicion=24037756&grupo=24037757&tipojuego=2";
+  "https://www.rffm.es/competicion/clasificaciones?temporada=21&competicion=26367450&grupo=26367456&tipojuego=2";
 
 const URL_CALENDARIO =
-  "https://www.rffm.es/competicion/calendario?temporada=21&competicion=24037756&grupo=24037757&tipojuego=2";
+  "https://www.rffm.es/competicion/calendario?temporada=21&competicion=26367450&grupo=26367456&jornada=1&tipojuego=2";
 
 const actualizarClasificacion = async () => {
   console.log(
